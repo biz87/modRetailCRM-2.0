@@ -3,13 +3,10 @@
 /**
  * PHP version 5.4
  *
- * Response from retailCRM API
+ * Response from RetailCRM API
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Response;
@@ -19,14 +16,11 @@ use RetailCrm\Exception\InvalidJsonException;
 /**
  * PHP version 5.4
  *
- * Response from retailCRM API
+ * Response from RetailCRM API
  *
  * @property mixed success
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 class ApiResponse implements \ArrayAccess
 {
@@ -51,9 +45,17 @@ class ApiResponse implements \ArrayAccess
     {
         $this->statusCode = (int) $statusCode;
         $this->rawResponse = $responseBody;
+    }
 
-        if (!empty($responseBody)) {
-            $response = json_decode($responseBody, true);
+    /**
+     * Deserialize JSON from raw response body
+     *
+     * @return $this
+     */
+    public function asJsonResponse()
+    {
+        if (!empty($this->rawResponse)) {
+            $response = json_decode($this->rawResponse, true);
 
             if (!$response && JSON_ERROR_NONE !== ($error = json_last_error())) {
                 throw new InvalidJsonException(
@@ -64,6 +66,8 @@ class ApiResponse implements \ArrayAccess
 
             $this->response = $response;
         }
+
+        return $this;
     }
 
     /**

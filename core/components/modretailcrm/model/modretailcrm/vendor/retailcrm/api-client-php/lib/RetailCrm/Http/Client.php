@@ -7,9 +7,6 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Http;
@@ -17,6 +14,7 @@ namespace RetailCrm\Http;
 use RetailCrm\Exception\CurlException;
 use RetailCrm\Exception\InvalidJsonException;
 use RetailCrm\Exception\LimitException;
+use RetailCrm\Exception\NotFoundException;
 use RetailCrm\Response\ApiResponse;
 
 /**
@@ -26,9 +24,6 @@ use RetailCrm\Response\ApiResponse;
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 class Client
 {
@@ -37,18 +32,20 @@ class Client
 
     protected $url;
     protected $defaultParameters;
+    protected $options;
 
     /**
      * Client constructor.
      *
      * @param string $url               api url
      * @param array  $defaultParameters array of parameters
+     * @param bool   $debug             debug mode
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct($url, array $defaultParameters = [])
+    public function __construct($url, array $defaultParameters = [], $debug = false)
     {
-        if (false === stripos($url, 'https://')) {
+        if (false === stripos($url, 'https://') && false === $debug) {
             throw new \InvalidArgumentException(
                 'API schema requires HTTPS protocol'
             );
@@ -56,6 +53,7 @@ class Client
 
         $this->url = $url;
         $this->defaultParameters = $defaultParameters;
+        $this->options = new RequestOptions();
     }
 
     /**
@@ -74,7 +72,7 @@ class Client
      *
      * @return ApiResponse
      */
-    public function makeRequest(
+    public function makeRawRequest(
         $path,
         $method,
         array $parameters = [],
@@ -100,6 +98,10 @@ class Client
             $url .= '?' . http_build_query($parameters, '', '&');
         }
 
+        if (self::METHOD_POST === $method && '/files/upload' == $path) {
+            $url .= '?apiKey=' . $parameters['apiKey'];
+        }
+
         $curlHandler = curl_init();
         curl_setopt($curlHandler, CURLOPT_URL, $url);
         curl_setopt($curlHandler, CURLOPT_RETURNTRANSFER, 1);
@@ -107,19 +109,84 @@ class Client
         curl_setopt($curlHandler, CURLOPT_FAILONERROR, false);
         curl_setopt($curlHandler, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curlHandler, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curlHandler, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curlHandler, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($curlHandler, CURLOPT_TIMEOUT, $this->options->getClientTimeout());
+        curl_setopt($curlHandler, CURLOPT_CONNECTTIMEOUT, $this->options->getClientTimeout());
+
+        if ($this->options->getHeaders()) {
+            curl_setopt($curlHandler, CURLOPT_HTTPHEADER, $this->options->getHttpHeaders());
+        }
 
         if (self::METHOD_POST === $method) {
             curl_setopt($curlHandler, CURLOPT_POST, true);
-            curl_setopt($curlHandler, CURLOPT_POSTFIELDS, $parameters);
+
+            if ('/files/upload' == $path) {
+                curl_setopt($curlHandler, CURLOPT_POSTFIELDS, file_get_contents($parameters['file']));
+            } else {
+                curl_setopt($curlHandler, CURLOPT_POSTFIELDS, $parameters);
+            }
         }
 
+        list($statusCode, $responseBody) = $this->checkResponse($curlHandler, $method);
+
+        return new ApiResponse($statusCode, $responseBody);
+    }
+
+    /**
+     * Make HTTP request and deserialize JSON body (throws exception otherwise)
+     *
+     * @param string $path       request url
+     * @param string $method     (default: 'GET')
+     * @param array  $parameters (default: array())
+     * @param bool   $fullPath   (default: false)
+     *
+     * @SuppressWarnings(PHPMD.ExcessiveParameterList)
+     *
+     * @throws \InvalidArgumentException
+     * @throws CurlException
+     * @throws InvalidJsonException
+     *
+     * @return ApiResponse
+     */
+    public function makeRequest(
+        $path,
+        $method,
+        array $parameters = [],
+        $fullPath = false
+    ) {
+        return $this->makeRawRequest($path, $method, $parameters, $fullPath)->asJsonResponse();
+    }
+
+    /**
+     * Set request options
+     *
+     * @param RequestOptions $options
+     */
+    public function setOptions(RequestOptions $options)
+    {
+        $this->options = $options;
+    }
+
+    /**
+     * @param $curlHandler
+     * @param $method
+     *
+     * @return array
+     */
+    private function checkResponse($curlHandler, $method)
+    {
         $responseBody = curl_exec($curlHandler);
         $statusCode = curl_getinfo($curlHandler, CURLINFO_HTTP_CODE);
+        $contentType = curl_getinfo($curlHandler, CURLINFO_CONTENT_TYPE);
 
-        if ($statusCode == 503) {
-            throw new LimitException("Service temporary unavalable");
+        if (503 === $statusCode) {
+            throw new LimitException("Service temporary unavailable");
+        }
+
+        if (
+            (404 === $statusCode && false !== stripos($responseBody, 'Account does not exist'))
+            || ('GET' !== $method && 405 === $statusCode && false !== stripos($contentType, 'text/html'))
+        ) {
+            throw new NotFoundException("Account does not exist");
         }
 
         $errno = curl_errno($curlHandler);
@@ -131,6 +198,6 @@ class Client
             throw new CurlException($error, $errno);
         }
 
-        return new ApiResponse($statusCode, $responseBody);
+        return [$statusCode, $responseBody];
     }
 }

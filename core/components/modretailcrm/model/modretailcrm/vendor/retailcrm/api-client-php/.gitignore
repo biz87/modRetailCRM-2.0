@@ -1,0 +1,14 @@
+/vendor
+/bin
+composer.lock
+composer.phar
+coverage.xml
+test-report.xml
+phpunit.xml
+.idea
+.DS_Store
+.settings
+.buildpath
+.project
+.swp
+/nbproject

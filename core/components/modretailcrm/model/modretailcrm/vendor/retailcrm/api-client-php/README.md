@@ -1,16 +1,19 @@
-[![Build Status](https://img.shields.io/travis/retailcrm/api-client-php/master.svg?style=flat-square)](https://travis-ci.org/retailcrm/api-client-php)
-[![Latest stable](https://img.shields.io/packagist/v/retailcrm/api-client-php.svg?style=flat-square)](https://packagist.org/packages/retailcrm/api-client-php)
-[![PHP from Packagist](https://img.shields.io/packagist/php-v/retailcrm/api-client-php.svg?style=flat-square)](https://packagist.org/packages/retailcrm/api-client-php)
+[![Build Status](https://github.com/retailcrm/api-client-php/workflows/ci/badge.svg)](https://github.com/retailcrm/api-client-php/actions)
+[![Covarage](https://img.shields.io/codecov/c/gh/retailcrm/api-client-php/master.svg?logo=codecov&logoColor=white)](https://codecov.io/gh/retailcrm/api-client-php)
+[![Latest stable](https://img.shields.io/packagist/v/retailcrm/api-client-php.svg)](https://packagist.org/packages/retailcrm/api-client-php)
+[![PHP from Packagist](https://img.shields.io/packagist/php-v/retailcrm/api-client-php.svg?logo=php&logoColor=white)](https://packagist.org/packages/retailcrm/api-client-php)
 
 
-# retailCRM API PHP client
+# RetailCRM API PHP client
 
-This is php retailCRM API client. This library allows to use all available API versions. [API documentation](http://retailcrm.github.io/api-client-php)
+This is php RetailCRM API client. This library allows to use all available API versions. [API documentation](http://retailcrm.github.io/api-client-php)
 
 ## Requirements
 
 * PHP 5.4 and above
 * PHP's cURL support
+* PHP's JSON support
+* PHP's Fileinfo support
 
 ## Install
 
@@ -31,7 +34,7 @@ require 'path/to/vendor/autoload.php';
 ### Get order
 ```php
 $client = new \RetailCrm\ApiClient(
-    'https://demo.retailcrm.ru',
+    'https://demo.retailcrm.pro',
     'T9DMPvuNt7FQJMszHUdG8Fkt6xHsqngH',
     \RetailCrm\ApiClient::V5
 );
@@ -66,21 +69,21 @@ if ($response->isSuccessful()) {
 ```php
 
 $client = new \RetailCrm\ApiClient(
-    'https://demo.retailcrm.ru',
+    'https://demo.retailcrm.pro',
     'T9DMPvuNt7FQJMszHUdG8Fkt6xHsqngH',
-    \RetailCrm\ApiClient::V4
+    \RetailCrm\ApiClient::V5
 );
 
 try {
     $response = $client->request->ordersCreate(array(
         'externalId' => 'some-shop-order-id',
-        'firstName' => 'Vasily',
-        'lastName' => 'Pupkin',
+        'firstName' => 'John',
+        'lastName' => 'Doe',
         'items' => array(
             //...
         ),
         'delivery' => array(
-            'code' => 'russian-post',
+            'code' => 'fedex',
         )
     ));
 } catch (\RetailCrm\Exception\CurlException $e) {
@@ -88,7 +91,7 @@ try {
 }
 
 if ($response->isSuccessful() && 201 === $response->getStatusCode()) {
-    echo 'Order successfully created. Order ID into retailCRM = ' . $response->id;
+    echo 'Order successfully created. Order ID into RetailCRM = ' . $response->id;
         // or $response['id'];
         // or $response->getId();
 } else {
@@ -105,8 +108,18 @@ if ($response->isSuccessful() && 201 === $response->getStatusCode()) {
 }
 ```
 
-### Documentation
+### Set custom headers and client timeout
+```php
+$client = new \RetailCrm\ApiClient(
+    'https://demo.retailcrm.pro',
+    'T9DMPvuNt7FQJMszHUdG8Fkt6xHsqngH',
+    \RetailCrm\ApiClient::V5
+);
 
-* [English](http://www.retailcrm.pro/docs/Developers/Index)
-* [Russian](http://www.retailcrm.ru/docs/Developers/Index)
-* [API documentation](http://retailcrm.github.io/api-client-php)
+$options = new \RetailCrm\Http\RequestOptions(
+    ['X-Rlimit-Token' => 'example_token'], // array of custom headers
+    10 // client timeout (in seconds)
+);
+
+$client->request->setOptions($options);
+```

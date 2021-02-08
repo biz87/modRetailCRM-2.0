@@ -7,9 +7,6 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Methods\V5;
@@ -23,9 +20,6 @@ use RetailCrm\Methods\V4\Orders as Previous;
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 trait Orders
 {
@@ -42,7 +36,7 @@ trait Orders
      */
     public function ordersCombine($order, $resultOrder, $technique = 'ours')
     {
-        $techniques = ['ours', 'summ', 'theirs'];
+        $techniques = ['ours', 'summ', 'theirs', 'merge'];
 
         if (!count($order) || !count($resultOrder)) {
             throw new \InvalidArgumentException(

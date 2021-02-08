@@ -7,26 +7,22 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Test;
 
+use PHPUnit\Framework\MockObject\MockObject;
 use RetailCrm\ApiClient;
 use RetailCrm\Http\Client;
+use PHPUnit\Framework\TestCase as BaseCase;
 
 /**
  * Class TestCase
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
-class TestCase extends \PHPUnit_Framework_TestCase
+class TestCase extends BaseCase
 {
     /**
      * Return ApiClient object
@@ -55,6 +51,22 @@ class TestCase extends \PHPUnit_Framework_TestCase
             $version ?: $configVersion,
             $site ?: $configSite
         );
+    }
+
+    /**
+     * @param \RetailCrm\Http\Client|MockObject $httpClient
+     * @return ApiClient
+     * @throws \ReflectionException
+     */
+    public static function getMockedApiClient($httpClient)
+    {
+        $client = self::getApiClient();
+        $property = new \ReflectionProperty(get_class($client->request), 'client');
+
+        $property->setAccessible(true);
+        $property->setValue($client->request, $httpClient);
+
+        return $client;
     }
 
     /**

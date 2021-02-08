@@ -7,9 +7,6 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Tests\Methods\Version5;
@@ -21,9 +18,6 @@ use RetailCrm\Test\TestCase;
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 class ApiClientReferenceTest extends TestCase
 {
@@ -138,6 +132,40 @@ class ApiClientReferenceTest extends TestCase
     }
 
     /**
+     * @group reference_v5
+     */
+    public function testUnitsEditing()
+    {
+        $client = static::getApiClient();
+
+        $unit = [
+            'code' => 'test',
+            'name' => 'Test',
+            'sym' => 'tst'
+        ];
+
+        $response = $client->request->unitsEdit($unit);
+
+        static::assertTrue(in_array($response->getStatusCode(), [200, 201]));
+    }
+
+    /**
+     * @group reference_v5
+     * @expectedException \InvalidArgumentException
+     */
+    public function testUnitsEditingFail()
+    {
+        $client = static::getApiClient();
+
+        $unit = [
+            'name' => 'Test',
+            'sym' => 'tst'
+        ];
+
+        $client->request->unitsEdit($unit);
+    }
+
+    /**
      * @return array
      */
     public function getListDictionaries()
@@ -155,7 +183,8 @@ class ApiClientReferenceTest extends TestCase
             ['sites'],
             ['stores'],
             ['couriers'],
-            ['costs']
+            ['costs'],
+            ['units']
         ];
     }
 

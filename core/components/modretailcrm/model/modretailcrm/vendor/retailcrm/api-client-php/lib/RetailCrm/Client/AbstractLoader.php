@@ -7,14 +7,12 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Client;
 
 use RetailCrm\Http\Client;
+use RetailCrm\Http\RequestOptions;
 
 /**
  * PHP version 5.4
@@ -23,14 +21,16 @@ use RetailCrm\Http\Client;
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 abstract class AbstractLoader
 {
+    /** @var string|null */
     protected $siteCode;
+
+    /** @var \RetailCrm\Http\Client */
     protected $client;
+
+    /** @var string */
     protected $crmUrl;
 
     /**
@@ -40,12 +40,14 @@ abstract class AbstractLoader
      * @param string $apiKey  api key
      * @param string $version api version
      * @param string $site    site code
+     * @param bool   $debug   debug mode
      */
-    public function __construct($url, $apiKey, $version, $site = null)
+    public function __construct($url, $apiKey, $version, $site = null, $debug = false)
     {
         if ('/' !== $url[strlen($url) - 1]) {
             $url .= '/';
         }
+
         $this->crmUrl = $url;
 
         if (empty($version) || !in_array($version, ['v3', 'v4', 'v5'])) {
@@ -56,8 +58,18 @@ abstract class AbstractLoader
 
         $url = $url . 'api/' . $version;
 
-        $this->client = new Client($url, ['apiKey' => $apiKey]);
+        $this->client = new Client($url, ['apiKey' => $apiKey], $debug);
         $this->siteCode = $site;
+    }
+
+    /**
+     * Set request options
+     *
+     * @param RequestOptions $options
+     */
+    public function setOptions(RequestOptions $options)
+    {
+        $this->client->setOptions($options);
     }
 
     /**

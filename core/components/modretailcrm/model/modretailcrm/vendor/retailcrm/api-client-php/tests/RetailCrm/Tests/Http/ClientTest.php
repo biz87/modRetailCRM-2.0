@@ -7,9 +7,6 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Tests\Http;
@@ -22,9 +19,6 @@ use RetailCrm\Http\Client;
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 class ClientTest extends TestCase
 {
@@ -48,6 +42,20 @@ class ClientTest extends TestCase
         $client = new Client('http://demo.retailcrm.ru/api/' . $configVersion, ['apiKey' => '123']);
 
         return $client;
+    }
+
+    /**
+     * @group client
+     */
+    public function testHttpDebug()
+    {
+        $client_v3 = new Client('http://demo.retailcrm.ru/api/v3', ['apiKey' => '123'], true);
+        $client_v4 = new Client('http://demo.retailcrm.ru/api/v4', ['apiKey' => '123'], true);
+        $client_v5 = new Client('http://demo.retailcrm.ru/api/v5', ['apiKey' => '123'], true);
+
+        static::assertInstanceOf('RetailCrm\Http\Client', $client_v3);
+        static::assertInstanceOf('RetailCrm\Http\Client', $client_v4);
+        static::assertInstanceOf('RetailCrm\Http\Client', $client_v5);
     }
 
     /**
@@ -79,6 +87,22 @@ class ClientTest extends TestCase
         $response = $client->makeRequest('/orders', Client::METHOD_GET);
 
         static::assertInstanceOf('RetailCrm\Response\ApiResponse', $response);
+        static::assertNotEmpty($response->getResponseBody());
+        static::assertNotEmpty($response->getResponse());
+        static::assertEquals(200, $response->getStatusCode());
+    }
+
+    /**
+     * @group client
+     */
+    public function testRequestSuccessNoDeserialization()
+    {
+        $client = static::getClient();
+        $response = $client->makeRawRequest('/orders', Client::METHOD_GET);
+
+        static::assertInstanceOf('RetailCrm\Response\ApiResponse', $response);
+        static::assertNotEmpty($response->getResponseBody());
+        static::assertEmpty($response->getResponse());
         static::assertEquals(200, $response->getStatusCode());
     }
 }

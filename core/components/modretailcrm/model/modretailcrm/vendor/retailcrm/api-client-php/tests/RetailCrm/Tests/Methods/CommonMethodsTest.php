@@ -7,9 +7,6 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Tests\Methods;
@@ -21,9 +18,6 @@ use RetailCrm\Test\TestCase;
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 class CommonMethodsTest extends TestCase
 {
@@ -61,5 +55,23 @@ class CommonMethodsTest extends TestCase
         static::assertEquals(200, $response->getStatusCode());
         static::assertTrue($response->isSuccessful());
         static::assertGreaterThan(0, count($response['credentials']));
+    }
+
+    /**
+     * System settings
+     *
+     * @group api_methods
+     *
+     * @return void
+     */
+    public function testSettings()
+    {
+        $client = static::getApiClient();
+
+        $response = $client->request->settings();
+
+        static::assertEquals(200, $response->getStatusCode());
+        static::assertTrue($response->isSuccessful());
+        static::assertGreaterThan(0, count($response['settings']));
     }
 }

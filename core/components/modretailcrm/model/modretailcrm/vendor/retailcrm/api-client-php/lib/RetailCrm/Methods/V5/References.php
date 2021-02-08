@@ -7,9 +7,6 @@
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 
 namespace RetailCrm\Methods\V5;
@@ -23,9 +20,6 @@ use RetailCrm\Methods\V4\References as Previous;
  *
  * @category RetailCrm
  * @package  RetailCrm
- * @author   RetailCrm <integration@retailcrm.ru>
- * @license  https://opensource.org/licenses/MIT MIT License
- * @link     http://www.retailcrm.ru/docs/Developers/ApiVersion5
  */
 trait References
 {
@@ -243,6 +237,51 @@ trait References
             sprintf('/reference/couriers/%s/edit', $courier['id']),
             "POST",
             ['courier' => json_encode($courier)]
+        );
+    }
+
+    /**
+     * Get units
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function unitsList()
+    {
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            '/reference/units',
+            "GET"
+        );
+    }
+
+    /**
+     * Edit unit
+     *
+     * @param array $unit
+     *
+     * @throws \InvalidArgumentException
+     * @throws \RetailCrm\Exception\CurlException
+     * @throws \RetailCrm\Exception\InvalidJsonException
+     *
+     * @return \RetailCrm\Response\ApiResponse
+     */
+    public function unitsEdit(array $unit)
+    {
+        if (empty($unit['code']) || empty($unit['name']) || empty($unit['sym'])) {
+            throw new \InvalidArgumentException(
+                '`code`, `name` and `sym` parameters must not be empty.'
+            );
+        }
+
+        /* @noinspection PhpUndefinedMethodInspection */
+        return $this->client->makeRequest(
+            sprintf('/reference/units/%s/edit', $unit['code']),
+            "POST",
+            ['unit' => json_encode($unit)]
         );
     }
 }
