@@ -3,12 +3,8 @@
 /** @var array $options */
 /** @var modX $modx */
 if ($transport->xpdo) {
-    $modx =& $transport->xpdo;
+    $modx = $transport->xpdo;
 
-
-//$_lang['modretailcrm_retailcrm_delivery_code_field'] = 'Символьный код способа доставки в RetailCRM';
-//$_lang['modretailcrm_retailcrm_payment_code_field'] = 'Символьный код способа оплаты в RetailCRM';
-//$_lang['modretailcrm_retailcrm_status_code_field'] = 'Символьный код статуса заказа в RetailCRM';
 
     $items = array(
         'retailcrm_delivery_code' => array(

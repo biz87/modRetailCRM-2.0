@@ -15,9 +15,9 @@ class modRetailCrm extends \RetailCrm\ApiClient
      * modRetailCrm constructor.
      * @param modX $modx
      */
-    public function __construct(modX &$modx)
+    public function __construct(modX $modx)
     {
-        $this->modx =& $modx;
+        $this->modx = $modx;
 
         $apiKey = $this->getSetting('modretailcrm_apiKey');
         $crmUrl = $this->getSetting('modretailcrm_url');

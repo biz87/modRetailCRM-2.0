@@ -1,6 +1,9 @@
 <?php
 
 $_lang['area_modretailcrm_main'] = 'Основные';
+$_lang['area_modretailcrm_auth'] = 'Авторизация';
+$_lang['area_modretailcrm_classes'] = 'Классы';
+$_lang['area_modretailcrm_components'] = 'Компоненты';
 
 $_lang['setting_modretailcrm_apiKey'] = 'Ключ API';
 $_lang['setting_modretailcrm_apiKey_desc'] = 'Ключ API выданный вам в личном кабинете RetailCRM (Раздел Администрирование-Настройки)';
@@ -25,3 +28,9 @@ $_lang['setting_modretailcrm_custom_orders_class_desc'] = 'JSON массив д�
 
 $_lang['setting_modretailcrm_custom_customers_class'] = 'Собственный класс для покупателей';
 $_lang['setting_modretailcrm_custom_customers_class_desc'] = 'JSON массив данных о собственном классе информации о покупателях. Подробнее в документации';
+
+$_lang['setting_modretailcrm_rewrite_num'] = 'Перезаписывать номер заказа из CRM';
+$_lang['setting_modretailcrm_rewrite_num_desc'] = 'Номер заказа как в CRM. Вместо 2103/308 будет 100A';
+
+$_lang['setting_modretailcrm_add_crm_number'] = 'Перезаписывать номер заказа в CRM';
+$_lang['setting_modretailcrm_add_crm_number_desc'] = 'Номер заказа в CRM как на сайте. Вместо 100A будет 2103/308';

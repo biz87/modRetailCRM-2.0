@@ -14,12 +14,10 @@ class Triggers
      * Customers constructor.
      * @param modRetailCrm $modretailcrm
      */
-    public function __construct(modRetailCrm & $modretailcrm)
+    public function __construct(modRetailCrm $modretailcrm)
     {
-        $this->modretailcrm = &$modretailcrm;
-
-        $this->modx = &$modretailcrm->modx;
-
+        $this->modretailcrm = $modretailcrm;
+        $this->modx = $modretailcrm->modx;
         $this->pdo = $this->modx->getService('pdoFetch');
     }
 

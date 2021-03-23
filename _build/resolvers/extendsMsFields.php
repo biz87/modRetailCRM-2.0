@@ -3,7 +3,7 @@
 /** @var array $options */
 /** @var modX $modx */
 if ($transport->xpdo) {
-    $modx =& $transport->xpdo;
+    $modx = $transport->xpdo;
 
     $my_fields = array(
         'msDelivery' => array('retailcrm_delivery_code'),

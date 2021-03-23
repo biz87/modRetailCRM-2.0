@@ -13,33 +13,24 @@ class Orders implements ordersInterface
     /** @var modRetailCrm $modretailcrm */
     public $modretailcrm;
 
+    /** @var pdoFetch $pdo */
     public $pdo;
 
-    public $allow_msoptionsprice;
-
+    public $allow_msoptionsprice = false;
     public $is_mspromocode = false;
 
-    public function __construct(modRetailCrm & $modretailcrm)
+    public function __construct(modRetailCrm $modretailcrm)
     {
-        $this->modretailcrm = &$modretailcrm;
-
-        $this->modx = &$modretailcrm->modx;
-
+        $this->modretailcrm = $modretailcrm;
+        $this->modx = $modretailcrm->modx;
         $this->pdo = $this->modx->getService('pdoFetch');
     }
 
     public function msOnCreateOrder($msOrder)
     {
-        $modRetailCrm = $this->modretailcrm;
-
-        $modx = $this->modx;
-
-        $pdo = $this->pdo;
-
-        $packages = $modx->getOption('extension_packages');
+        $packages = $this->modx->getOption('extension_packages');
         $packages = json_decode($packages, true);
-        $this->allow_msoptionsprice = $modx->getOption('modretailcrm_allow_msoptionsprice');
-
+        $this->allow_msoptionsprice = $this->modx->getOption('modretailcrm_allow_msoptionsprice');
 
         foreach ($packages as $package) {
             if (isset($package['mspromocode'])) {
@@ -74,7 +65,6 @@ class Orders implements ordersInterface
             $orderData['delivery'] = $deliveryData;
         }
 
-
         if (!empty($order['payment']['retailcrm_payment_code'])) {
             $orderData['payments'][0]['type'] = $order['payment']['retailcrm_payment_code'];
         }
@@ -91,33 +81,44 @@ class Orders implements ordersInterface
             $orderData['discountManualAmount'] = $order['sale']['discount_amount'];
         }
 
-        if ($modx->getOption('modretailcrm_log')) {
-            $modRetailCrm->log('Итоговый набор данных ' . print_r($orderData, 1));
+        if ($this->modx->getOption('modretailcrm_add_crm_number')) {
+            $orderData['number'] = $order['num'];
         }
 
-        $response = $modRetailCrm->request->ordersCreate($orderData);
+        if ($this->modx->getOption('modretailcrm_log')) {
+            $this->modretailcrm->log('Итоговый набор данных ' . print_r($orderData, 1));
+        }
 
-        if ($modx->getOption('modretailcrm_log')) {
-            $modRetailCrm->log('Результат отправки заказа ' . print_r($response, 1));
+        $response = $this->modretailcrm->request->ordersCreate($orderData);
+
+        if ($this->modx->getOption('modretailcrm_log')) {
+            $this->modretailcrm->log('Результат отправки заказа ' . print_r($response, 1));
+        }
+
+        if ($this->modx->getOption('modretailcrm_rewrite_num')) {
+            if ($response->isSuccessful()) {
+                $num = $response['order']['number'];
+                $msOrder->set('num', $num);
+                $msOrder->save();
+            }
         }
     }
 
 
     /**
-     * @param xPDOObject $msOrder
+     * @param msOrder $msOrder
      * @return mixed
      */
     public function orderCombine($msOrder)
     {
-        $pdo =& $this->pdo;
         $order = $msOrder->toArray();
-        $order['address'] = $pdo->getArray('msOrderAddress', array('id' => $order['address']), array('sortby' => 'id'));
-        $order['delivery'] = $pdo->getArray('msDelivery', array('id' => $order['delivery']), array('sortby' => 'id'));
-        $order['payment'] = $pdo->getArray('msPayment', array('id' => $order['payment']), array('sortby' => 'id'));
-        $order['profile'] = $pdo->getArray('modUserProfile', array('internalKey' => $order['user_id']), array('sortby' => 'id'));
-        $order['products'] = $pdo->getCollection('msOrderProduct', array('order_id' => $order['id']), array('sortby' => 'id'));
+        $order['address'] = $this->pdo->getArray('msOrderAddress', array('id' => $order['address']), array('sortby' => 'id'));
+        $order['delivery'] = $this->pdo->getArray('msDelivery', array('id' => $order['delivery']), array('sortby' => 'id'));
+        $order['payment'] = $this->pdo->getArray('msPayment', array('id' => $order['payment']), array('sortby' => 'id'));
+        $order['profile'] = $this->pdo->getArray('modUserProfile', array('internalKey' => $order['user_id']), array('sortby' => 'id'));
+        $order['products'] = $this->pdo->getCollection('msOrderProduct', array('order_id' => $order['id']), array('sortby' => 'id'));
         if ($this->is_mspromocode) {
-            $order['sale'] = $pdo->getArray('mspcOrder', array('order_id' => $order['id']));
+            $order['sale'] = $this->pdo->getArray('mspcOrder', array('order_id' => $order['id']));
         }
 
         return $order;
@@ -129,22 +130,20 @@ class Orders implements ordersInterface
      */
     public function getCustomer($order = array())
     {
-        $modRetailCrm =& $this->modretailcrm;
-        $pdo =& $this->pdo;
         $output = array();
 
         //Проверяю наличие пользователя в базе CRM
-        $user_response = $modRetailCrm->request->customersGet($order['user_id'], 'externalId');
+        $user_response = $this->modretailcrm->request->customersGet($order['user_id'], 'externalId');
 
         if ($this->modx->getOption('modretailcrm_log')) {
-            $modRetailCrm->log('Ищем клиента в базе RetailCRM ' . print_r($user_response, 1));
+            $this->modretailcrm->log('Ищем клиента в базе RetailCRM ' . print_r($user_response, 1));
         }
 
         if ($user_response->getStatusCode() == 404) {
-            $customer_profile = $pdo->getArray('modUserProfile', array('internalKey' => $order['user_id']));
+            $customer_profile = $this->pdo->getArray('modUserProfile', array('internalKey' => $order['user_id']));
 
-            $data = $modRetailCrm->customers->getCustomerDataFromProfile($customer_profile);
-            $modRetailCrm->customers->createCustomer($data);
+            $data = $this->modretailcrm->customers->getCustomerDataFromProfile($customer_profile);
+            $this->modretailcrm->customers->createCustomer($data);
         }
 
         $output['customer']['externalId'] = $order['user_id'];
@@ -173,7 +172,6 @@ class Orders implements ordersInterface
             $this->modretailcrm->log('Не удалось получить список товаров в заказе');
         }
 
-
         $itemsData = array();
 
         foreach ($products as $key => $product) {
@@ -201,7 +199,7 @@ class Orders implements ordersInterface
                             //         $modification = $modx->getObject('msopModification', $mod);
                             //         $orderData['items'][$key]['properties'][] = array('name' => $k, 'value' => $modification->name);
                             //     }
-    
+
                             // }
                             break;
                         case 'size':
@@ -282,7 +280,10 @@ class Orders implements ordersInterface
         return $deliveryData;
     }
 
-
+    /**
+     * @param array $payment
+     * @return array
+     */
     public function getPaymentData($payment = array())
     {
         if (empty($payment)) {
@@ -297,6 +298,4 @@ class Orders implements ordersInterface
 
         return $paymentData;
     }
-
-
 }

@@ -4,18 +4,20 @@ return [
     'apiKey'       => array(
         'value' => '',
         'xtype' => 'textfield',
-        'area'  => 'modretailcrm_main',
+        'area'  => 'area_modretailcrm_auth',
     ),
     'siteCode'     => array(
         'value' => '',
         'xtype' => 'textfield',
-        'area'  => 'modretailcrm_main',
+        'area'  => 'area_modretailcrm_auth',
     ),
     'url' => array(
         'value' => '',
         'xtype' => 'textfield',
-        'area'  => 'modretailcrm_main',
+        'area'  => 'area_modretailcrm_auth',
     ),
+
+
     'log' => array(
         'xtype' => 'combo-boolean',
         'value' => false,
@@ -26,20 +28,34 @@ return [
         'xtype' => 'textfield',
         'area'  => 'modretailcrm_main',
     ),
-    'allow_msoptionsprice' => array(
+    'rewrite_num' => array(
         'xtype' => 'combo-boolean',
         'value' => false,
         'area'  => 'modretailcrm_main',
     ),
+    'add_crm_number' => array(
+        'xtype' => 'combo-boolean',
+        'value' => false,
+        'area'  => 'modretailcrm_main',
+    ),
+
+
+    'allow_msoptionsprice' => array(
+        'xtype' => 'combo-boolean',
+        'value' => false,
+        'area'  => 'area_modretailcrm_components',
+    ),
+
+
     'custom_orders_class' => array(
         'xtype' => 'textfield',
         'value' => '',
-        'area'  => 'modretailcrm_main',
+        'area'  => 'area_modretailcrm_classes',
     ),
     'custom_customers_class' => array(
         'xtype' => 'textfield',
         'value' => '',
-        'area'  => 'modretailcrm_main',
+        'area'  => 'area_modretailcrm_classes',
     ),
 
 ];
