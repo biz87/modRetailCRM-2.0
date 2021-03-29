@@ -4,17 +4,17 @@ return [
     'apiKey'       => array(
         'value' => '',
         'xtype' => 'textfield',
-        'area'  => 'area_modretailcrm_auth',
+        'area'  => 'modretailcrm_auth',
     ),
     'siteCode'     => array(
         'value' => '',
         'xtype' => 'textfield',
-        'area'  => 'area_modretailcrm_auth',
+        'area'  => 'modretailcrm_auth',
     ),
     'url' => array(
         'value' => '',
         'xtype' => 'textfield',
-        'area'  => 'area_modretailcrm_auth',
+        'area'  => 'modretailcrm_auth',
     ),
 
 
@@ -43,19 +43,19 @@ return [
     'allow_msoptionsprice' => array(
         'xtype' => 'combo-boolean',
         'value' => false,
-        'area'  => 'area_modretailcrm_components',
+        'area'  => 'modretailcrm_components',
     ),
 
 
     'custom_orders_class' => array(
         'xtype' => 'textfield',
         'value' => '',
-        'area'  => 'area_modretailcrm_classes',
+        'area'  => 'modretailcrm_classes',
     ),
     'custom_customers_class' => array(
         'xtype' => 'textfield',
         'value' => '',
-        'area'  => 'area_modretailcrm_classes',
+        'area'  => 'modretailcrm_classes',
     ),
 
 ];
