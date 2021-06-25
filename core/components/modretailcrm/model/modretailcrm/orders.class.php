@@ -112,11 +112,37 @@ class Orders implements ordersInterface
     public function orderCombine($msOrder)
     {
         $order = $msOrder->toArray();
-        $order['address'] = $this->pdo->getArray('msOrderAddress', array('id' => $order['address']), array('sortby' => 'id'));
-        $order['delivery'] = $this->pdo->getArray('msDelivery', array('id' => $order['delivery']), array('sortby' => 'id'));
-        $order['payment'] = $this->pdo->getArray('msPayment', array('id' => $order['payment']), array('sortby' => 'id'));
-        $order['profile'] = $this->pdo->getArray('modUserProfile', array('internalKey' => $order['user_id']), array('sortby' => 'id'));
-        $order['products'] = $this->pdo->getCollection('msOrderProduct', array('order_id' => $order['id']), array('sortby' => 'id'));
+
+        $order['address'] = $this->pdo->getArray(
+            'msOrderAddress',
+            array('id' => $order['address']),
+            array('sortby' => 'id')
+        );
+
+        $order['delivery'] = $this->pdo->getArray(
+            'msDelivery',
+            array('id' => $order['delivery']),
+            array('sortby' => 'id')
+        );
+
+        $order['payment'] = $this->pdo->getArray(
+            'msPayment',
+            array('id' => $order['payment']),
+            array('sortby' => 'id')
+        );
+
+        $order['profile'] = $this->pdo->getArray(
+            'modUserProfile',
+            array('internalKey' => $order['user_id']),
+            array('sortby' => 'id')
+        );
+
+        $order['products'] = $this->pdo->getCollection(
+            'msOrderProduct',
+            array('order_id' => $order['id']),
+            array('sortby' => 'id')
+        );
+
         if ($this->is_mspromocode) {
             $order['sale'] = $this->pdo->getArray('mspcOrder', array('order_id' => $order['id']));
         }
@@ -147,8 +173,16 @@ class Orders implements ordersInterface
         }
 
         $output['customer']['externalId'] = $order['user_id'];
-        $output['firstName'] = !empty($order['address']['receiver']) ? $order['address']['receiver'] : $order['profile']['fullname'];
-        $output['phone'] = !empty($order['address']['phone']) ? $order['address']['phone'] : $order['profile']['phone'];
+        $output['firstName'] =
+            !empty($order['address']['receiver'])
+                ? $order['address']['receiver']
+                : $order['profile']['fullname'];
+
+        $output['phone'] =
+            !empty($order['address']['phone'])
+                ? $order['address']['phone']
+                : $order['profile']['phone'];
+
         $output['email'] = $order['profile']['email'];
 
         $tmpName = explode(' ', $output['firstName']);
@@ -211,8 +245,6 @@ class Orders implements ordersInterface
                         default:
                             $itemsData[$key]['properties'][] = array('name' => $k, 'value' => $v);
                     }
-
-
                 }
             }
         }
@@ -251,7 +283,6 @@ class Orders implements ordersInterface
                 } else {
                     $deliveryAddressData[$field] = $address[$field];
                 }
-
             }
         }
 

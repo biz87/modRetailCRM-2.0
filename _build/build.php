@@ -62,7 +62,6 @@ class modRetailCrmPackage
         $this->builder = $this->modx->getService('transport.modPackageBuilder');
         $this->builder->createPackage($this->config['name_lower'], $this->config['version'], $this->config['release']);
 
-
         $username = 'biz87@mail.ru'; // Укажите свой аккаунт
         $api_key = '088c953938f6187f0942dbcd2215bc26'; // и свой ключ сайта
 
@@ -98,7 +97,12 @@ class modRetailCrmPackage
         require_once $this->config['core'] . 'model/encryptedvehicle.class.php';
 
 
-        $this->builder->registerNamespace($this->config['name_lower'], false, true, '{core_path}components/' . $this->config['name_lower'] . '/');
+        $this->builder->registerNamespace(
+            $this->config['name_lower'],
+            false,
+            true,
+            '{core_path}components/' . $this->config['name_lower'] . '/'
+        );
         $this->modx->log(modX::LOG_LEVEL_INFO, 'Created Transport Package and Namespace.');
 
         $this->category = $this->modx->newObject('modCategory');
@@ -126,7 +130,6 @@ class modRetailCrmPackage
         if (empty($this->config['core'] . 'model/schema/' . $this->config['name_lower'] . '.mysql.schema.xml')) {
             return;
         }
-        /** @var xPDOCacheManager $cache */
         if ($cache = $this->modx->getCacheManager()) {
             $cache->deleteTree(
                 $this->config['core'] . 'model/' . $this->config['name_lower'] . '/mysql',
@@ -136,7 +139,6 @@ class modRetailCrmPackage
 
         /** @var xPDOManager $manager */
         $manager = $this->modx->getManager();
-        /** @var xPDOGenerator $generator */
         $generator = $manager->getGenerator();
         $generator->parseSchema(
             $this->config['core'] . 'model/schema/' . $this->config['name_lower'] . '.mysql.schema.xml',
@@ -357,10 +359,13 @@ class modRetailCrmPackage
                 'name' => $name,
                 'category' => 0,
                 'description' => @$data['description'],
-                'plugincode' => $this::_getContent($this->config['core'] . 'elements/plugins/' . $data['file'] . '.php'),
+                'plugincode' => $this::_getContent(
+                    $this->config['core'] . 'elements/plugins/' . $data['file'] . '.php'
+                ),
                 'static' => !empty($this->config['static']['plugins']),
                 'source' => 1,
-                'static_file' => 'core/components/' . $this->config['name_lower'] . '/elements/plugins/' . $data['file'] . '.php',
+                'static_file' =>
+                    'core/components/' . $this->config['name_lower'] . '/elements/plugins/' . $data['file'] . '.php',
             ], $data), '', true, true);
 
             $events = [];
@@ -414,7 +419,8 @@ class modRetailCrmPackage
                 'snippet' => $this::_getContent($this->config['core'] . 'elements/snippets/' . $data['file'] . '.php'),
                 'static' => !empty($this->config['static']['snippets']),
                 'source' => 1,
-                'static_file' => 'core/components/' . $this->config['name_lower'] . '/elements/snippets/' . $data['file'] . '.php',
+                'static_file' =>
+                    'core/components/' . $this->config['name_lower'] . '/elements/snippets/' . $data['file'] . '.php',
             ], $data), '', true, true);
             $properties = [];
             foreach (@$data['properties'] as $k => $v) {
@@ -459,7 +465,8 @@ class modRetailCrmPackage
                 'snippet' => $this::_getContent($this->config['core'] . 'elements/chunks/' . $data['file'] . '.tpl'),
                 'static' => !empty($this->config['static']['chunks']),
                 'source' => 1,
-                'static_file' => 'core/components/' . $this->config['name_lower'] . '/elements/chunks/' . $data['file'] . '.tpl',
+                'static_file' =>
+                    'core/components/' . $this->config['name_lower'] . '/elements/chunks/' . $data['file'] . '.tpl',
             ], $data), '', true, true);
             $objects[$name]->setProperties(@$data['properties']);
         }
@@ -496,7 +503,8 @@ class modRetailCrmPackage
                 'content' => $this::_getContent($this->config['core'] . 'elements/templates/' . $data['file'] . '.tpl'),
                 'static' => !empty($this->config['static']['templates']),
                 'source' => 1,
-                'static_file' => 'core/components/' . $this->config['name_lower'] . '/elements/templates/' . $data['file'] . '.tpl',
+                'static_file' =>
+                    'core/components/' . $this->config['name_lower'] . '/elements/templates/' . $data['file'] . '.tpl',
             ], $data), '', true, true);
         }
         $this->category->addMany($objects);
@@ -509,7 +517,7 @@ class modRetailCrmPackage
      *
      * @return string
      */
-    static public function _getContent($filename)
+    public static function _getContent($filename)
     {
         if (file_exists($filename)) {
             $file = trim(file_get_contents($filename));
@@ -606,7 +614,7 @@ class modRetailCrmPackage
                 $r = preg_split('#([0-9]+)#', $sig[2], -1, PREG_SPLIT_DELIM_CAPTURE);
                 if (is_array($r) && !empty($r)) {
                     $package->set('release', $r[0]);
-                    $package->set('release_index', (isset($r[1]) ? $r[1] : '0'));
+                    $package->set('release_index', ($r[1] ?? '0'));
                 } else {
                     $package->set('release', $sig[2]);
                 }
@@ -624,9 +632,6 @@ class modRetailCrmPackage
      */
     public function process()
     {
-//        $this->model();
-//        $this->assets();
-
         // Add elements
         $elements = scandir($this->config['elements']);
         foreach ($elements as $element) {
@@ -640,7 +645,6 @@ class modRetailCrmPackage
         }
 
         // Create main vehicle
-        /** @var modTransportVehicle $vehicle */
         $vehicle = $this->builder->createVehicle($this->category, $this->category_attributes);
 
         // Files resolvers
@@ -685,10 +689,7 @@ class modRetailCrmPackage
         }
 
         return $this->builder;
-
-
     }
-
 }
 
 /** @var array $config */

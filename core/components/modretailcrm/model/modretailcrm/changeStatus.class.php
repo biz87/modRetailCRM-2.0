@@ -41,7 +41,10 @@ class ChangeStatus
                         $orderData['status'] = $retailcrm_status_code;
                         $response = $this->modretailcrm->request->ordersEdit($orderData, $by = 'externalId');
                         if ($this->modx->getOption('modretailcrm_log')) {
-                            $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModRetailCrm] - Результат отправки статуса заказа ' . print_r($response, 1));
+                            $this->modx->log(
+                                modX::LOG_LEVEL_ERROR,
+                                '[ModRetailCrm] - Результат отправки статуса заказа ' . print_r($response, 1)
+                            );
                         }
 
                         //Если Статус оплачено - меняем статус платежа
@@ -65,7 +68,10 @@ class ChangeStatus
         //Ищем номер платежа
         $orders = $this->modretailcrm->request->ordersList(array('externalIds' => [$externalId]), 1, 20);
         if ($this->modx->getOption('modretailcrm_log')) {
-            $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModRetailCrm] -  Ищу данные о номере платежа ' . print_r($orders, 1));
+            $this->modx->log(
+                modX::LOG_LEVEL_ERROR,
+                '[ModRetailCrm] -  Ищу данные о номере платежа ' . print_r($orders, 1)
+            );
         }
         $paymentId = 0;
         if (count($orders['orders']) > 0) {
@@ -83,11 +89,11 @@ class ChangeStatus
 
             $paymentEdit = $this->modretailcrm->request->ordersPaymentEdit($payment, 'id');
             if ($this->modx->getOption('modretailcrm_log')) {
-                $this->modx->log(modX::LOG_LEVEL_ERROR, '[ModRetailCrm] -  Обновляю статус платежа ' . print_r($paymentEdit, 1));
+                $this->modx->log(
+                    modX::LOG_LEVEL_ERROR,
+                    '[ModRetailCrm] -  Обновляю статус платежа ' . print_r($paymentEdit, 1)
+                );
             }
-
         }
     }
-
-
 }

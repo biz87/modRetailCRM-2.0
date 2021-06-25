@@ -27,10 +27,10 @@ class Triggers
             case 'change_status':
                 $status = $post['status'];
                 $order_id = $post['order_id'];
-                $post_status = trim(filter_var($status,FILTER_SANITIZE_STRING));
-                $post_order_id = trim(filter_var($order_id,FILTER_SANITIZE_STRING));
+                $post_status = trim(filter_var($status, FILTER_SANITIZE_STRING));
+                $post_order_id = trim(filter_var($order_id, FILTER_SANITIZE_STRING));
 
-                if(empty($post_status) || empty($post_order_id)){
+                if (empty($post_status) || empty($post_order_id)) {
                     break;
                 }
 
@@ -66,8 +66,11 @@ class Triggers
         if (!empty($syncStatuses)) {
             $syncStatuses = array_map("trim", explode(',', $syncStatuses));
             if (is_array($syncStatuses) && count($syncStatuses) > 0) {
-                $statuses = $this->pdo->getCollection('msOrderStatus', array('id:IN' => $syncStatuses, 'retailcrm_status_code:!=' => ''));
-                if(!empty($statuses)){
+                $statuses = $this->pdo->getCollection(
+                    'msOrderStatus',
+                    array('id:IN' => $syncStatuses, 'retailcrm_status_code:!=' => '')
+                );
+                if (!empty($statuses)) {
                     $output = $statuses;
                 }
             }
@@ -75,6 +78,4 @@ class Triggers
 
         return $output;
     }
-
-
 }

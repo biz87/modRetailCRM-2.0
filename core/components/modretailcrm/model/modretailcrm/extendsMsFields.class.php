@@ -54,8 +54,5 @@ class ExtendsMsFields
             'phptype' => 'string',
             'null' => true,
         );
-
     }
-
-
 }

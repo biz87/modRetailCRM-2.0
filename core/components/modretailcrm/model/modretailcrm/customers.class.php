@@ -36,10 +36,7 @@ class Customers implements customersInterface
     public function OnUserSave(modUser $user, $mode)
     {
         $modRetailCrm = $this->modretailcrm;
-
         $modx = $this->modx;
-
-
         $profile = $user->getOne('Profile');
 
         if ($profile) {
@@ -92,7 +89,7 @@ class Customers implements customersInterface
     {
 
         $customer = array();
-        if(!is_array($userProfile)){
+        if (!is_array($userProfile)) {
             $userProfile = $userProfile->toArray();
         }
 

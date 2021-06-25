@@ -1,4 +1,5 @@
 <?php
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 class modRetailCrm extends \RetailCrm\ApiClient
@@ -18,11 +19,9 @@ class modRetailCrm extends \RetailCrm\ApiClient
     public function __construct(modX $modx)
     {
         $this->modx = $modx;
-
         $apiKey = $this->getSetting('modretailcrm_apiKey');
         $crmUrl = $this->getSetting('modretailcrm_url');
         $site = $this->getSetting('modretailcrm_siteCode');
-
 
         $readyToConnect = $this->readyToConnect($apiKey, $crmUrl, $site);
         if ($readyToConnect) {
@@ -30,10 +29,7 @@ class modRetailCrm extends \RetailCrm\ApiClient
             $this->loadClasses();
             $this->ready = true;
         }
-
-
     }
-
 
     /**
      * @param modUser $user
@@ -44,7 +40,6 @@ class modRetailCrm extends \RetailCrm\ApiClient
         if ($this->ready) {
             $this->customers->onUserSave($user, $mode);
         }
-
     }
 
     /**
@@ -132,19 +127,18 @@ class modRetailCrm extends \RetailCrm\ApiClient
      */
     private function crmUrlIsValid($crmUrl = '')
     {
-        if (filter_var($crmUrl, FILTER_VALIDATE_URL)) {
-            $pos = strpos($crmUrl, 'retailcrm.ru');
-
-            if ($pos === false) {
-                $this->log('modretailcrm_url не является корректным URL адресом');
-            }
-
-
-            return true;
+        if (!filter_var($crmUrl, FILTER_VALIDATE_URL)) {
+            $this->log('modretailcrm_url не является корректным URL адресом');
+            return false;
         }
 
-        $this->log('modretailcrm_url не является URL адресом');
-        return false;
+        $pos = strpos($crmUrl, 'retailcrm.ru');
+        if ($pos === false) {
+            $this->log('modretailcrm_url не является корректным URL адресом');
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -171,19 +165,11 @@ class modRetailCrm extends \RetailCrm\ApiClient
         return $readyToConnect;
     }
 
-    /**
-     * @return bool
-     */
     private function loadClasses()
     {
-
         $this->loadOrdersClass();
-
         $this->loadCustomersClass();
-
-        return true;
     }
-
 
     private function loadOrdersClass()
     {
@@ -211,18 +197,14 @@ class modRetailCrm extends \RetailCrm\ApiClient
                     }
                 }
             }
-
         }
-
 
         $this->orders = new $orders_class($this);
 
         if (!$this->orders instanceof ordersInterface) {
             $this->log('Could not initialize Orders class: "' . $orders_class . '"');
-            return false;
         }
     }
-
 
     private function loadCustomersClass()
     {
@@ -250,15 +232,12 @@ class modRetailCrm extends \RetailCrm\ApiClient
                     }
                 }
             }
-
         }
-
 
         $this->customers = new $customers_class($this);
 
         if (!$this->customers instanceof customersInterface) {
             $this->log('Could not initialize Customers class: "' . $customers_class . '"');
-            return false;
         }
     }
 

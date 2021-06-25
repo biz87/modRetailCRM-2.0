@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * @var modX  $modx
+ * @var array $scriptProperties
+ */
 header('Content-Type: application/xml; charset=utf-8');
 //services
 $pdo = $modx->getService('pdoTools');
@@ -34,17 +39,35 @@ $categoryTpl = $modx->getOption('categoryTpl', $scriptProperties, $categoryTempl
 $offerTemplate = '@INLINE
 {if $modifications?}
     {foreach $modifications as $modification}
-        <offer id="mod-{$id}-{$modification.id}" productId="{$id}" {if $modification.count?}quantity="{$modification.count}"{/if}> 
+        <offer 
+            id="mod-{$id}-{$modification.id}" 
+            productId="{$id}" 
+            {if $modification.count?}
+                quantity="{$modification.count}"
+            {/if}
+        > 
             <url>{$id | url : ["scheme" => "full"] }</url> 
-            <price>{if $modification.price?}{$modification.price}.00{else}{$price}.00{/if}</price> 
+            <price>
+                {if $modification.price?}
+                    {$modification.price}.00
+                {else}
+                    {$price}.00
+                {/if}
+            </price> 
             <categoryId>{$parent}</categoryId> 
-            {if $image}<picture>{"site_url" | option | preg_replace : "#/$#" : ""}{$image}</picture> {/if}
+            {if $image}
+                <picture>{"site_url" | option | preg_replace : "#/$#" : ""}{$image}</picture>
+            {/if}
             
             <name>{$pagetitle | replace : "&" : "AND"} - {$modification.name | replace : "&" : "AND"}</name> 
-            {if $xmlId}<xmlId>{$xmlId}</xmlId> {/if}
+            {if $xmlId}
+                <xmlId>{$xmlId}</xmlId>
+            {/if}
             <productName>{$pagetitle | replace : "&" : "AND"}</productName> 
             
-            {if $modification.article?}<param name="Артикул" code="article">{$modification.article | replace : "&" : "AND"}</param> {/if}
+            {if $modification.article?}
+                <param name="Артикул" code="article">{$modification.article | replace : "&" : "AND"}</param> 
+            {/if}
             {foreach $modification.options as $key => $value}
                 {switch $key}
                     {case "size"}
@@ -55,13 +78,16 @@ $offerTemplate = '@INLINE
                     <param name="Вес" code="{$key}">{$value | replace : "&" : "AND"}</param>
                     {default}
                     <param name="{$key}" code="{$key}">{$value | replace : "&" : "AND"}</param>
-                {/switch}
-                
+                {/switch}                
             {/foreach}
             
             <vendor>{$_pls["vendor.name"] | replace : "&" : "AND"}</vendor> 
-            {if $weight?}<param name="Вес" code="weight">{$weight | replace : "&" : "AND"}</param> {/if}
-            {if $modification.weight?}<param name="Вес" code="weight">{$modification.weight | replace : "&" : "AND"}</param> {/if}
+            {if $weight?}
+                <param name="Вес" code="weight">{$weight | replace : "&" : "AND"}</param>
+            {/if}
+            {if $modification.weight?}
+                <param name="Вес" code="weight">{$modification.weight | replace : "&" : "AND"}</param>
+            {/if}
             <unit code="pcs" name="Штука" sym="шт." />
         </offer> 
     {/foreach}
@@ -71,11 +97,17 @@ $offerTemplate = '@INLINE
         <categoryId>{$parent}</categoryId> 
         <picture>{"site_url" | option | preg_replace : "#/$#" : ""}{$image}</picture> 
         <name>{$pagetitle | replace : "&" : "AND"}</name> 
-        {if $xmlId}<xmlId>{$xmlId}</xmlId> {/if}
+        {if $xmlId}
+            <xmlId>{$xmlId}</xmlId>
+        {/if}
         <productName>{$pagetitle | replace : "&" : "AND"}</productName> 
-        {if $article?}<param name="Артикул" code="article">{$article | replace : "&" : "AND"}</param> {/if}
+        {if $article?}
+            <param name="Артикул" code="article">{$article | replace : "&" : "AND"}</param>
+        {/if}
         <vendor>{$_pls["vendor.name"] | replace : "&" : "AND"}</vendor> 
-        {if $weight?}<param name="Вес" code="weight">{$weight | replace : "&" : "AND"}</param> {/if}
+        {if $weight?}
+            <param name="Вес" code="weight">{$weight | replace : "&" : "AND"}</param>
+        {/if}
         <unit code="pcs" name="Штука" sym="шт." />
     </offer>
 {else}
@@ -85,11 +117,17 @@ $offerTemplate = '@INLINE
         <categoryId>{$parent}</categoryId> 
         <picture>{"site_url" | option | preg_replace : "#/$#" : ""}{$image}</picture> 
         <name>{$pagetitle | replace : "&" : "AND"}</name> 
-        {if $xmlId}<xmlId>{$xmlId}</xmlId> {/if}
+        {if $xmlId}
+            <xmlId>{$xmlId}</xmlId>
+        {/if}
         <productName>{$pagetitle | replace : "&" : "AND"}</productName> 
-        {if $article?}<param name="Артикул" code="article">{$article | replace : "&" : "AND"}</param> {/if}
+        {if $article?}
+            <param name="Артикул" code="article">{$article | replace : "&" : "AND"}</param>
+        {/if}
         <vendor>{$_pls["vendor.name"] | replace : "&" : "AND"}</vendor> 
-        {if $weight?}<param name="Вес" code="weight">{$weight}</param> {/if}
+        {if $weight?}
+            <param name="Вес" code="weight">{$weight}</param>
+        {/if}
         <unit code="pcs" name="Штука" sym="шт." />
     </offer>
 {/if}
@@ -123,6 +161,10 @@ if ($categories) {
     foreach ($categories as $category) {
         $categoryArr = $category->toArray();
         if (in_array($categoryArr['parent'], $parentsArr)) {
+            unset($categoryArr['parent']);
+        }
+
+        if (in_array($categoryArr['id'], $parentsArr)) {
             unset($categoryArr['parent']);
         }
         $categoriesXML .= $pdo->getChunk($categoryTpl, $categoryArr);
@@ -162,11 +204,10 @@ if ($products) {
 }
 
 
-$output = $pdo->getChunk($outputWrapper, array(
+return $pdo->getChunk($outputWrapper, array(
     'date' => $date,
     'name' => $shop,
     'company' => $company,
     'categories' => $categoriesXML,
     'offers' => $productsXML,
 ));
-return $output;

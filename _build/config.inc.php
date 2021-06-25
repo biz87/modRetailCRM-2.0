@@ -11,7 +11,7 @@ if (!defined('MODX_CORE_PATH')) {
 return [
     'name' => 'modRetailCrm',
     'name_lower' => 'modretailcrm',
-    'version' => '2.12.0',
+    'version' => '2.12.1',
     'release' => 'pl',
     // Install package to site right after build
     'install' => true,

@@ -1,10 +1,10 @@
 <?php
+
 /** @var xPDOTransport $transport */
 /** @var array $options */
 /** @var modX $modx */
 if ($transport->xpdo) {
     $modx = $transport->xpdo;
-
 
     $items = array(
         'retailcrm_delivery_code' => array(
