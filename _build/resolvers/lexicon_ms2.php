@@ -45,7 +45,6 @@ if ($transport->xpdo) {
                 foreach ($value as $language => $lexicon) {
                     $modx->removeCollection('modLexiconEntry', array('name' => $key));
                 }
-
             }
             break;
     }

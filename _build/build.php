@@ -13,9 +13,6 @@ class modRetailCrmPackage
     public $category;
     public $category_attributes = [];
 
-    protected $_idx = 1;
-
-
     /**
      * modRetailCrmPackage constructor.
      *
@@ -26,7 +23,6 @@ class modRetailCrmPackage
     {
         /** @noinspection PhpIncludeInspection */
         require($core_path . 'model/modx/modx.class.php');
-        /** @var modX $modx */
         $this->modx = new modX();
         $this->modx->initialize('mgr');
         $this->modx->getService('error', 'error.modError');
@@ -81,7 +77,6 @@ class modRetailCrmPackage
             $this->modx->log(modX::LOG_LEVEL_INFO, 'Error: ' . $data->message);
         }
 
-
         define('PKG_ENCODE_KEY', $data->key);
 
         $this->builder->package->put(array(
@@ -95,7 +90,6 @@ class modRetailCrmPackage
 
         $this->modx->loadClass('transport.xPDOObjectVehicle', XPDO_CORE_PATH, true, true);
         require_once $this->config['core'] . 'model/encryptedvehicle.class.php';
-
 
         $this->builder->registerNamespace(
             $this->config['name_lower'],
@@ -118,9 +112,6 @@ class modRetailCrmPackage
         ];
         $this->modx->log(modX::LOG_LEVEL_INFO, 'Created main Category.');
     }
-
-
-
 
     /**
      * Update the model
@@ -146,38 +137,6 @@ class modRetailCrmPackage
         );
         $this->modx->log(modX::LOG_LEVEL_INFO, 'Model updated');
     }
-
-
-    /**
-     * Install nodejs and update assets
-     */
-    protected function assets()
-    {
-        $output = [];
-        if (!file_exists($this->config['build'] . 'node_modules')) {
-            putenv('PATH=' . trim(shell_exec('echo $PATH')) . ':' . dirname(MODX_BASE_PATH) . '/');
-            if (file_exists($this->config['build'] . 'package.json')) {
-                $this->modx->log(modX::LOG_LEVEL_INFO, 'Trying to install or update nodejs dependencies');
-                $output = [
-                    shell_exec('cd ' . $this->config['build'] . ' && npm config set scripts-prepend-node-path true && npm install'),
-                ];
-            }
-            if (file_exists($this->config['build'] . 'gulpfile.js')) {
-                $output = array_merge($output, [
-                    shell_exec('cd ' . $this->config['build'] . ' && npm link gulp'),
-                    shell_exec('cd ' . $this->config['build'] . ' && gulp copy'),
-                ]);
-            }
-            if ($output) {
-                $this->modx->log(xPDO::LOG_LEVEL_INFO, implode("\n", array_map('trim', $output)));
-            }
-        }
-        if (file_exists($this->config['build'] . 'gulpfile.js')) {
-            $output = shell_exec('cd ' . $this->config['build'] . ' && gulp default 2>&1');
-            $this->modx->log(xPDO::LOG_LEVEL_INFO, 'Compile scripts and styles ' . trim($output));
-        }
-    }
-
 
     /**
      * Add settings
@@ -209,7 +168,6 @@ class modRetailCrmPackage
         }
         $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($settings) . ' System Settings');
     }
-
 
     /**
      * Add menus
@@ -249,83 +207,6 @@ class modRetailCrmPackage
         $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($menus) . ' Menus');
     }
 
-
-    /**
-     * Add Dashboard Widgets
-     */
-    protected function widgets()
-    {
-        /** @noinspection PhpIncludeInspection */
-        $widgets = include($this->config['elements'] . 'widgets.php');
-        if (!is_array($widgets)) {
-            $this->modx->log(modX::LOG_LEVEL_ERROR, 'Could not package in Dashboard Widgets');
-
-            return;
-        }
-        $attributes = [
-            xPDOTransport::PRESERVE_KEYS => true,
-            xPDOTransport::UPDATE_OBJECT => !empty($this->config['update']['widgets']),
-            xPDOTransport::UNIQUE_KEY => 'name',
-        ];
-        foreach ($widgets as $name => $data) {
-            /** @var modDashboardWidget $widget */
-            $widget = $this->modx->newObject('modDashboardWidget');
-            $widget->fromArray(array_merge([
-                'name' => $name,
-                'namespace' => 'core',
-                'lexicon' => 'core:dashboards',
-            ], $data), '', true, true);
-            $vehicle = $this->builder->createVehicle($widget, $attributes);
-            $this->builder->putVehicle($vehicle);
-        }
-        $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($widgets) . ' Dashboard Widgets');
-    }
-
-
-    /**
-     * Add resources
-     */
-    protected function resources()
-    {
-        /** @noinspection PhpIncludeInspection */
-        $resources = include($this->config['elements'] . 'resources.php');
-        if (!is_array($resources)) {
-            $this->modx->log(modX::LOG_LEVEL_ERROR, 'Could not package in Resources');
-
-            return;
-        }
-        $attributes = [
-            xPDOTransport::UNIQUE_KEY => 'id',
-            xPDOTransport::PRESERVE_KEYS => true,
-            xPDOTransport::UPDATE_OBJECT => !empty($this->config['update']['resources']),
-            xPDOTransport::RELATED_OBJECTS => false,
-        ];
-        $objects = [];
-        foreach ($resources as $context => $items) {
-            $menuindex = 0;
-            foreach ($items as $alias => $item) {
-                if (!isset($item['id'])) {
-                    $item['id'] = $this->_idx++;
-                }
-                $item['alias'] = $alias;
-                $item['context_key'] = $context;
-                $item['menuindex'] = $menuindex++;
-                $objects = array_merge(
-                    $objects,
-                    $this->_addResource($item, $alias)
-                );
-            }
-        }
-
-        /** @var modResource $resource */
-        foreach ($objects as $resource) {
-            $vehicle = $this->builder->createVehicle($resource, $attributes);
-            $this->builder->putVehicle($vehicle);
-        }
-        $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($objects) . ' Resources');
-    }
-
-
     /**
      * Add plugins
      */
@@ -359,7 +240,7 @@ class modRetailCrmPackage
                 'name' => $name,
                 'category' => 0,
                 'description' => @$data['description'],
-                'plugincode' => $this::_getContent(
+                'plugincode' => $this->getContent(
                     $this->config['core'] . 'elements/plugins/' . $data['file'] . '.php'
                 ),
                 'static' => !empty($this->config['static']['plugins']),
@@ -416,7 +297,7 @@ class modRetailCrmPackage
                 'id' => 0,
                 'name' => $name,
                 'description' => @$data['description'],
-                'snippet' => $this::_getContent($this->config['core'] . 'elements/snippets/' . $data['file'] . '.php'),
+                'snippet' => $this->getContent($this->config['core'] . 'elements/snippets/' . $data['file'] . '.php'),
                 'static' => !empty($this->config['static']['snippets']),
                 'source' => 1,
                 'static_file' =>
@@ -436,88 +317,12 @@ class modRetailCrmPackage
         $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($objects) . ' Snippets');
     }
 
-
-    /**
-     * Add chunks
-     */
-    protected function chunks()
-    {
-        /** @noinspection PhpIncludeInspection */
-        $chunks = include($this->config['elements'] . '_chunks.php');
-        if (!is_array($chunks)) {
-            $this->modx->log(modX::LOG_LEVEL_ERROR, 'Could not package in Chunks');
-
-            return;
-        }
-        $this->category_attributes[xPDOTransport::RELATED_OBJECT_ATTRIBUTES]['Chunks'] = [
-            xPDOTransport::PRESERVE_KEYS => false,
-            xPDOTransport::UPDATE_OBJECT => !empty($this->config['update']['chunks']),
-            xPDOTransport::UNIQUE_KEY => 'name',
-        ];
-        $objects = [];
-        foreach ($chunks as $name => $data) {
-            /** @var modChunk[] $objects */
-            $objects[$name] = $this->modx->newObject('modChunk');
-            $objects[$name]->fromArray(array_merge([
-                'id' => 0,
-                'name' => $name,
-                'description' => @$data['description'],
-                'snippet' => $this::_getContent($this->config['core'] . 'elements/chunks/' . $data['file'] . '.tpl'),
-                'static' => !empty($this->config['static']['chunks']),
-                'source' => 1,
-                'static_file' =>
-                    'core/components/' . $this->config['name_lower'] . '/elements/chunks/' . $data['file'] . '.tpl',
-            ], $data), '', true, true);
-            $objects[$name]->setProperties(@$data['properties']);
-        }
-        $this->category->addMany($objects);
-        $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($objects) . ' Chunks');
-    }
-
-
-    /**
-     * Add templates
-     */
-    protected function templates()
-    {
-        /** @noinspection PhpIncludeInspection */
-        $templates = include($this->config['elements'] . 'templates.php');
-        if (!is_array($templates)) {
-            $this->modx->log(modX::LOG_LEVEL_ERROR, 'Could not package in Templates');
-
-            return;
-        }
-        $this->category_attributes[xPDOTransport::RELATED_OBJECT_ATTRIBUTES]['Templates'] = [
-            xPDOTransport::UNIQUE_KEY => 'templatename',
-            xPDOTransport::PRESERVE_KEYS => false,
-            xPDOTransport::UPDATE_OBJECT => !empty($this->config['update']['templates']),
-            xPDOTransport::RELATED_OBJECTS => false,
-        ];
-        $objects = [];
-        foreach ($templates as $name => $data) {
-            /** @var modTemplate[] $objects */
-            $objects[$name] = $this->modx->newObject('modTemplate');
-            $objects[$name]->fromArray(array_merge([
-                'templatename' => $name,
-                'description' => $data['description'],
-                'content' => $this::_getContent($this->config['core'] . 'elements/templates/' . $data['file'] . '.tpl'),
-                'static' => !empty($this->config['static']['templates']),
-                'source' => 1,
-                'static_file' =>
-                    'core/components/' . $this->config['name_lower'] . '/elements/templates/' . $data['file'] . '.tpl',
-            ], $data), '', true, true);
-        }
-        $this->category->addMany($objects);
-        $this->modx->log(modX::LOG_LEVEL_INFO, 'Packaged in ' . count($objects) . ' Templates');
-    }
-
-
     /**
      * @param $filename
      *
      * @return string
      */
-    public static function _getContent($filename)
+    protected function getContent($filename)
     {
         if (file_exists($filename)) {
             $file = trim(file_get_contents($filename));
@@ -528,60 +333,6 @@ class modRetailCrmPackage
         }
 
         return '';
-    }
-
-
-    /**
-     * @param array $data
-     * @param string $uri
-     * @param int $parent
-     *
-     * @return array
-     */
-    protected function _addResource(array $data, $uri, $parent = 0)
-    {
-        $file = $data['context_key'] . '/' . $uri;
-        /** @var modResource $resource */
-        $resource = $this->modx->newObject('modResource');
-        $resource->fromArray(array_merge([
-            'parent' => $parent,
-            'published' => true,
-            'deleted' => false,
-            'hidemenu' => false,
-            'createdon' => time(),
-            'template' => 1,
-            'isfolder' => !empty($data['isfolder']) || !empty($data['resources']),
-            'uri' => $uri,
-            'uri_override' => false,
-            'richtext' => false,
-            'searchable' => true,
-            'content' => $this::_getContent($this->config['core'] . 'elements/resources/' . $file . '.tpl'),
-        ], $data), '', true, true);
-
-        if (!empty($data['groups'])) {
-            foreach ($data['groups'] as $group) {
-                $resource->joinGroup($group);
-            }
-        }
-        $resources[] = $resource;
-
-        if (!empty($data['resources'])) {
-            $menuindex = 0;
-            foreach ($data['resources'] as $alias => $item) {
-                if (!isset($item['id'])) {
-                    $item['id'] = $this->_idx++;
-                }
-                $item['alias'] = $alias;
-                $item['context_key'] = $data['context_key'];
-                $item['menuindex'] = $menuindex++;
-                $resources = array_merge(
-                    $resources,
-                    $this->_addResource($item, $uri . '/' . $alias, $data['id'])
-                );
-            }
-        }
-
-        return $resources;
     }
 
 

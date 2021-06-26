@@ -174,5 +174,4 @@ class encryptedVehicle extends xPDOObjectVehicle
 
         return $key;
     }
-
 }
