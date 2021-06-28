@@ -1,12 +1,13 @@
 <?php
 
 /**
- * @var modX  $modx
+ * @var modX $modx
  * @var array $scriptProperties
  */
 header('Content-Type: application/xml; charset=utf-8');
 //services
 $pdo = $modx->getService('pdoTools');
+$pdoFetch = $modx->getService('pdoFetch');
 
 //common params
 $date = date('Y-m-d H:i');
@@ -144,7 +145,6 @@ foreach ($parentsArr as $parent) {
 }
 
 //get categories
-$q = $modx->newQuery('msCategory');
 $where = array(
     'class_key' => 'msCategory',
     'deleted' => 0,
@@ -153,26 +153,38 @@ $where = array(
 if (count($mainchildIds) > 0) {
     $where['id:IN'] = array_merge($mainchildIds, $parentsArr);
 }
-$q->where($where);
-$q->select('id,pagetitle,parent');
-$categories = $modx->getIterator('msCategory', $q);
+$categories = $pdoFetch->getCollection(
+    'msCategory',
+    $where,
+    [
+        'select' => 'id,pagetitle,parent',
+    ]
+);
 $categoriesXML = '';
-if ($categories) {
+$parentsIds = $parentsArr;
+
+if (!empty($categories)) {
     foreach ($categories as $category) {
-        $categoryArr = $category->toArray();
-        if (in_array($categoryArr['parent'], $parentsArr)) {
-            unset($categoryArr['parent']);
+        $parentsIds[] = $category['id'];
+    }
+
+    foreach ($categories as $category) {
+        if (in_array($category['parent'], $parentsArr)) {
+            unset($category['parent']);
         }
 
-        if (in_array($categoryArr['id'], $parentsArr)) {
-            unset($categoryArr['parent']);
+        if (!in_array($category['parent'], $parentsIds)) {
+            unset($category['parent']);
         }
-        $categoriesXML .= $pdo->getChunk($categoryTpl, $categoryArr);
+
+        if (in_array($category['id'], $parentsArr)) {
+            unset($category['parent']);
+        }
+        $categoriesXML .= $pdo->getChunk($categoryTpl, $category);
     }
 }
 
 //get products
-$q = $modx->newQuery('msProduct');
 $where = array(
     'class_key' => 'msProduct',
     'deleted' => 0,
@@ -181,25 +193,29 @@ $where = array(
 if (count($mainchildIds) > 0) {
     $where['id:IN'] = $mainchildIds;
 }
-$q->where($where);
-
-$products = $modx->getIterator('msProduct', $q);
+$products = $pdoFetch->getCollection(
+    'msProduct',
+    $where
+);
 $productsXML = '';
-
-if ($products) {
+if (!empty($products)) {
     foreach ($products as $product) {
-        $productArr = $product->toArray();
-
+        if (!in_array($product['parent'], $parentsIds)) {
+            continue;
+        }
         if ($allow_msoptionsprice) {
-            $modifications = $modx->getIterator('msopModification', array('rid' => $product->id));
-            if ($modifications) {
+            $modifications = $pdoFetch->getCollection(
+                'msopModification',
+                ['rid' => $product['id']]
+            );
+            if (!empty($modifications)) {
                 foreach ($modifications as $modification) {
-                    $productArr['modifications'][] = $modification->toArray();
+                    $product['modifications'][] = $modification;
                 }
             }
         }
 
-        $productsXML .= $pdo->getChunk($offerTpl, $productArr);
+        $productsXML .= $pdo->getChunk($offerTpl, $product);
     }
 }
 
