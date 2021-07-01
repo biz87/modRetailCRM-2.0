@@ -61,23 +61,27 @@ class modRetailCrmPackage
         $username = 'biz87@mail.ru'; // Укажите свой аккаунт
         $api_key = '088c953938f6187f0942dbcd2215bc26'; // и свой ключ сайта
 
-        $client = $this->modx->getService('rest.modRestCurlClient');
-        $result = $client->request('https://modstore.pro/extras/package/', 'encode', 'POST', array(
+
+        /** @var modRest $client */
+        $client = $this->modx->getService('rest', 'rest.modRest');
+        $client->setOption('format', 'xml');
+        $params = array(
             'package' => $this->config['name'],
             'http_host' => $this->modx->getOption('http_host'),
             'username' => $username,
             'api_key' => $api_key,
             'version' => $this->config['version'] . '-' . $this->config['release'],
             'vehicle_version' => '2.0.0'
-        ), array('contentType' => 'application/xml'));
-        $data = new SimpleXMLElement($result);
-        if (!empty($data->key)) {
-            $this->modx->log(modX::LOG_LEVEL_INFO, 'Key: ' . $data->key);
-        } elseif (!empty($data->message)) {
-            $this->modx->log(modX::LOG_LEVEL_INFO, 'Error: ' . $data->message);
+        );
+        $response = $client->post('https://modstore.pro/extras/package/encode/', $params);
+        $result = $response->process();
+        if (!empty($result['key'])) {
+            $this->modx->log(modX::LOG_LEVEL_INFO, 'Key: ' . $result['key']);
+        } else {
+            $this->modx->log(modX::LOG_LEVEL_INFO, 'Error: ' . $result['message']);
         }
 
-        define('PKG_ENCODE_KEY', $data->key);
+        define('PKG_ENCODE_KEY', $result['key']);
 
         $this->builder->package->put(array(
             'source' => $this->config['core'] . 'model/encryptedvehicle.class.php',

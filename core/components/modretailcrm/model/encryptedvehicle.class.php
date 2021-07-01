@@ -110,7 +110,7 @@ class encryptedVehicle extends xPDOObjectVehicle
      *
      * @return bool
      */
-    protected function decodePayloads(&$transport, $action = 'install')
+    protected function decodePayloads($transport, $action = 'install')
     {
         if (isset($this->payload['object_encrypted']) || isset($this->payload['related_objects_encrypted'])) {
             if (!$key = $this->getDecodeKey($transport, $action)) {
@@ -136,9 +136,10 @@ class encryptedVehicle extends xPDOObjectVehicle
      *
      * @return bool|string
      */
-    protected function getDecodeKey(&$transport, $action)
+    protected function getDecodeKey($transport, $action)
     {
         $key = false;
+        $url = 'https://modstore.pro/extras/';
         $endpoint = 'package/decode/' . $action;
 
         /** @var modTransportPackage $package */
@@ -148,26 +149,27 @@ class encryptedVehicle extends xPDOObjectVehicle
         if ($package instanceof modTransportPackage) {
             /** @var modTransportProvider $provider */
             if ($provider = $package->getOne('Provider')) {
-                $provider->xpdo->setOption('contentType', 'default');
+                /** @var modRest $client */
+                $client = $transport->xpdo->getService('rest', 'rest.modRest');
+                $client->setOption('format', 'xml');
+
                 $params = array(
                     'package' => $package->package_name,
                     'version' => $transport->version,
                     'username' => $provider->username,
                     'api_key' => $provider->api_key,
                     'vehicle_version' => self::version,
+                    'http_host' => $transport->xpdo->getOption('http_host'),
                 );
 
-                $response = $provider->request($endpoint, 'POST', $params);
-                if ($response->isError()) {
-                    $msg = $response->getError();
-                    $transport->xpdo->log(xPDO::LOG_LEVEL_ERROR, $msg);
+                $response = $client->post($url . $endpoint, $params);
+                $result = $response->process();
+
+                if (!empty($result['key'])) {
+                    $key = $result['key'];
+                    $transport->xpdo->log(modX::LOG_LEVEL_INFO, 'Key: ' . $result['key']);
                 } else {
-                    $data = $response->toXml();
-                    if (!empty($data->key)) {
-                        $key = $data->key;
-                    } elseif (!empty($data->message)) {
-                        $transport->xpdo->log(xPDO::LOG_LEVEL_ERROR, $data->message);
-                    }
+                    $transport->xpdo->log(modX::LOG_LEVEL_INFO, 'Error: ' . $result['message']);
                 }
             }
         }
