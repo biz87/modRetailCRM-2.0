@@ -94,7 +94,7 @@ $offerTemplate = '@INLINE
     {/foreach}
     <offer id="{$id}" productId="{$id}"> 
         <url>{$id | url : ["scheme" => "full"] }</url> 
-        <price>{$price}.00</price> 
+        <price>{$price}</price> 
         <categoryId>{$parent}</categoryId> 
         <picture>{"site_url" | option | preg_replace : "#/$#" : ""}{$image}</picture> 
         <name>{$pagetitle | replace : "&" : "AND"}</name> 
@@ -114,7 +114,7 @@ $offerTemplate = '@INLINE
 {else}
     <offer id="{$id}" productId="{$id}"> 
         <url>{$id | url : ["scheme" => "full"] }</url> 
-        <price>{$price}.00</price> 
+        <price>{$price}</price> 
         <categoryId>{$parent}</categoryId> 
         <picture>{"site_url" | option | preg_replace : "#/$#" : ""}{$image}</picture> 
         <name>{$pagetitle | replace : "&" : "AND"}</name> 
@@ -193,10 +193,33 @@ $where = array(
 if (count($mainchildIds) > 0) {
     $where['id:IN'] = $mainchildIds;
 }
-$products = $pdoFetch->getCollection(
-    'msProduct',
-    $where
+
+$leftJoin = [
+    'msProductData' => [
+        'class' => 'msProductData',
+        'on' => 'msProduct.id = msProductData.id',
+    ],
+];
+
+$select = array(
+    'msProduct' => $modx->getSelectColumns('msProduct', 'msProduct'),
+    'msProductData' => $modx->getSelectColumns('msProductData', 'msProductData'),
 );
+
+$default = array(
+    'class' => 'msProduct',
+    'where' => $where,
+    'leftJoin' => $leftJoin,
+    'select' => $select,
+    'sortby' => 'msProduct.menuindex',
+    'sortdir' => 'asc',
+    'limit' => 0,
+    'return' => 'data',
+);
+// Merge all properties and run!
+$pdoFetch->setConfig($default, false);
+$products = $pdoFetch->run();
+
 $productsXML = '';
 if (!empty($products)) {
     foreach ($products as $product) {
